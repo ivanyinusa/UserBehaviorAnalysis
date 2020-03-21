@@ -143,3 +143,15 @@ class TopNHotItems(topSize: Int) extends KeyedProcessFunction[Long, ItemViewCoun
     out.collect(result.toString())
   }
 }
+
+// 扩展： 用 AggregateFunction实现求平均数的需求
+class AverageTsAgg() extends AggregateFunction[UserBehavior, (Long, Int), Double]{
+  override def add(value: UserBehavior, accumulator: (Long, Int)): (Long, Int) =
+    (accumulator._1 + value.timestamp, accumulator._2 + 1)
+
+  override def createAccumulator(): (Long, Int) = (0L, 0)
+
+  override def getResult(accumulator: (Long, Int)): Double = accumulator._1 / accumulator._2.toDouble
+
+  override def merge(a: (Long, Int), b: (Long, Int)): (Long, Int) = (a._1 + b._1, a._2 + b._2)
+}
